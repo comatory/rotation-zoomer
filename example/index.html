@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RotationZoomer jQuery plugin</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="../dist/rotation-zoomer.js"></script>
+  <style>
+    #example {
+      width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <button id="rotateButton">Click to rotate!</button>
+    <button id="antiRotateButton">Click to rotate anti-clock wise!</button>
+  </div>
+  <img src="5573758881_daf7c8b22f_o.jpg" alt="" id="example">
+
+  <script>
+    $('#example').rotationZoomer({
+      rotateButton: '#rotateButton',
+      antiRotateButton: '#antiRotateButton',
+      initialRotation: 90
+    });
+  </script>
+</body>
+</html>
