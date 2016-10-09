@@ -6,9 +6,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="../dist/rotation-zoomer.js"></script>
   <style>
-    #example {
-      width: 400px;
-    }
+    canvas {border: 1px solid black;}
   </style>
 </head>
 <body>
@@ -16,13 +14,14 @@
     <button id="rotateButton">Click to rotate!</button>
     <button id="antiRotateButton">Click to rotate anti-clock wise!</button>
   </div>
+  <div style="height: 400px; background-color: red;"></div>
   <img src="5573758881_daf7c8b22f_o.jpg" alt="" id="example">
 
   <script>
     $('#example').rotationZoomer({
       rotateButton: '#rotateButton',
       antiRotateButton: '#antiRotateButton',
-      initialRotation: 90
+      rotation: 0
     });
   </script>
 </body>

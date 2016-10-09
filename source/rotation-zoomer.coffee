@@ -9,107 +9,110 @@ do ($) ->
 class rotationZoomer
   constructor: (el, opts) ->
     @$el = $(el)
-    @parseOptions opts
-    # Get current rotation degrees (passed as options or as data attribute)
-    @deg = @opts.initialRotation
+    @el = el
+    @opts = opts
+    @parseOptions()
     @initialize()
 
-  # Get defaults or passed options
-  parseOptions: (opts) ->
-    @opts = {}
-    @opts =
-      rotateButton: $(opts.rotateButton) || $('<button>').addClass('rotation-zoomer-rotate-cw')
-      antiRotateButton: $(opts.antiRotateButton) || $('<button>').addClass('rotation-zoomer-rotate-acw')
-      stepping: opts.stepping || 90
-      initialRotation: opts.initialRotation || @$el.data('initial-rotation' || opts.initialRotationDataAttr) || 0
-
   initialize: ->
-    # Wrapper element for fixing size after rotation
-    wrapper = $('<div>').addClass('rotation-zoomer-wrapper')
-    @$el.wrap(wrapper)
-    @$wrapper = @$el.parents('.rotation-zoomer-wrapper').first()
+    @width = @$el.width()
+    @height = @$el.height()
+    @dimensions =
+      vert:
+        w: @width
+        h: @height
+      hor:
+        w: @height
+        h: @width
+
+    @initializeCanvas()
+
+  initializeCanvas: ->
+    @$canvas = $('<canvas>')
+    @$el.parents().first().append(@$canvas)
+    @$el.css('display', 'none')
+    @context = @$canvas.get(0).getContext('2d')
+    @transform()
+
+  parseOptions: ->
+    @options =
+      rotation: @opts.rotation || 0
+      rotateButton: @opts.rotateButton
+      antiRotateButton: @opts.antiRotateButton
+
+    @deg = @options.rotation
     @bindControls()
-    @transform()
 
-  # Set degrees for transformation
-  rotate: (dir = true) ->
-    degrees = @degrees(dir)
-    @$wrapper.data({
-        dir: dir
-        degrees: degrees
-      })
-    @transform()
+  bindControls: ->
+    if @options.rotateButton
+      @$rotateButton = $(@options.rotateButton)
 
-  rotateDefault: =>
+    if @options.antiRotateButton
+      @$antiRotateButton = $(@options.antiRotateButton)
+
+    if @$rotateButton
+      @$rotateButton.on 'click', =>
+        @rotateCW()
+
+    if @$antiRotateButton
+      @$antiRotateButton.on 'click', =>
+        @rotateACW()
+
+  setWidthAndHeight: ->
+    if @hasHorizontalRotation()
+      @width = @dimensions.hor.w
+      @height = @dimensions.hor.h
+    else
+      @width = @dimensions.vert.w
+      @height = @dimensions.vert.h
+
+  transform: ->
+    console.log('transforming')
+    @setWidthAndHeight()
+    @context.canvas.width = @width
+    @context.canvas.height = @height
+
     @rotate()
 
-  rotateACW: =>
-    @rotate(dir = false)
+  hasHorizontalRotation: ->
+    @deg == 90 || @deg == 270
 
-  degrees: (dir) ->
-    @deg = if dir
-      # Handle correct number of degrees for clock wise rotation
-      @calculateCW()
+  redraw: ->
+    @context.clearRect(0, 0, @context.canvas.width, @context.canvas.height)
+    @draw()
+
+  draw: ->
+    if @hasHorizontalRotation()
+      @context.drawImage(@el, 0, 0, @height, @width)
     else
-      # Handle correct number of degrees for anti clock wise rotation
-      @calculateACW()
-    @deg
+      @context.drawImage(@el, 0, 0, @width, @height)
 
-  calculateCW: ->
-     if (@deg + @opts.stepping >= 360) then 0 else @deg + @opts.stepping
 
-  calculateACW: ->
-     if (@deg - @opts.stepping <= 0) then 360 else @deg - @opts.stepping
+  rotate: ->
+    switch @deg
+      when 90
+        @context.translate(@width, 0)
+        break
+      when 270
+        @context.translate(0, @height)
+        break
+      when 180
+        @context.translate(@width, @height)
+        break
 
-  # Generate CSS properties
-  wrapperCSS: ->
-    base =
-      transform: "rotate(#{@deg}deg)"
-      display: "inline-block"
-      margin: '0px'
-      padding: '0px'
+    @context.rotate((Math.PI / 180) * @deg)
+    @redraw()
 
-    if @deg == 90 || 270
-      base.width = @prev.height
-      base.height = @prev.width
-    else
-      base.width = @prev.width
-      base.height = @prev.height
-    base
+  rotateCW: ->
+    @deg = if @deg + 90 >= 360
+            0
+          else
+            @deg + 90
+    @transform()
 
-  elCSS: ->
-    base = {}
-    if @deg == 90 || 270
-      base.width = '100%'
-      base.height = 'auto'
-    else
-      base.width = 'auto'
-      base.height = '100%'
-    base
-
-  # Add CSS transform
-  transform: ->
-    @prevDimensions()
-    @$wrapper.css(@wrapperCSS())
-    @$el.css(@elCSS())
-    @curDimensions()
-    console.log(@prev)
-    console.log(@current)
-
-  prevDimensions: ->
-    @prev = @dimensionObject()
-
-  curDimensions: ->
-    @current = @dimensionObject()
-
-  dimensionObject: () ->
-    $.extend({}, {
-      width: @$wrapper.outerWidth(),
-      height: @$wrapper.outerHeight()
-      }, @$wrapper.offset()
-    )
-
-  # Rotation buttons bind
-  bindControls: ->
-    @opts.rotateButton.on 'click', @rotateDefault
-    @opts.antiRotateButton.on 'click', @rotateACW
+  rotateACW: ->
+    @deg = if @deg - 90 < 0
+            270
+          else
+            @deg - 90
+    @transform()
