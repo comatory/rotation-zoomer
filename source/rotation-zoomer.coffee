@@ -29,9 +29,14 @@ class rotationZoomer
 
   initializeCanvas: ->
     @$canvas = $('<canvas>')
+    @$canvas.css({
+      position: @$el.css('position')
+      display: @$el.css('display')
+      })
     @$el.parents().first().append(@$canvas)
     @$el.css('display', 'none')
     @context = @$canvas.get(0).getContext('2d')
+    @bindControls()
     @transform()
 
   parseOptions: ->
@@ -39,9 +44,11 @@ class rotationZoomer
       rotation: @opts.rotation || 0
       rotateButton: @opts.rotateButton
       antiRotateButton: @opts.antiRotateButton
+      zoomerWidth: @opts.ZoomerWidth || 100
+      zoomerHeight: @opts.ZoomerHeight || 100
+      scale: @opts.scale || 2.5
 
     @deg = @options.rotation
-    @bindControls()
 
   bindControls: ->
     if @options.rotateButton
@@ -57,6 +64,8 @@ class rotationZoomer
     if @$antiRotateButton
       @$antiRotateButton.on 'click', =>
         @rotateACW()
+
+    @$canvas.on 'click', @zoom
 
   setWidthAndHeight: ->
     if @hasHorizontalRotation()
@@ -116,3 +125,43 @@ class rotationZoomer
           else
             @deg - 90
     @transform()
+
+  zoom: (e) =>
+    @coords =
+      x: e.clientX - @context.canvas.getBoundingClientRect().left
+      y: e.clientY - @context.canvas.getBoundingClientRect().top
+
+    @sourceCoords =
+      if @deg == 0
+        x: -@coords.x + (@options.zoomerWidth / (@options.scale * 2))
+        y: -@coords.y + (@options.zoomerWidth / (@options.scale * 2))
+      else if @deg == 90
+        x: -@coords.x + (@options.zoomerWidth / (@options.scale * 2))
+        y: -@coords.y + (@options.zoomerWidth / (@options.scale * 2))
+      else if @deg == 180
+        x: @coords.y + (@options.zoomerWidth / (@options.scale * 2))
+        y: @coords.x + (@options.zoomerWidth / (@options.scale * 2))
+
+    console.log(@context.canvas.getBoundingClientRect())
+    console.log(@coords)
+    # console.log(@targetCoords)
+    @openZoomer()
+
+  openZoomer: ->
+    @redraw()
+    @$zoomer = $('<canvas>')
+    @zoomerContext = @$zoomer.get(0).getContext('2d')
+    @zoomerContext.canvas.width = @options.zoomerWidth
+    @zoomerContext.canvas.height = @options.zoomerHeight
+    @zoomerContext.scale(@options.scale, @options.scale)
+    # @zoomerContext.rotate((Math.PI / 180) * @deg)
+    @zoomerContext.translate(@sourceCoords.x, @sourceCoords.y)
+    @zoomerContext.drawImage(@context.canvas, 0, 0)
+    @context.drawImage(@zoomerContext.canvas, @coords.x - @zoomerWidthWindow(), @coords.y - @zoomerHeightWindow(), @zoomerContext.canvas.width, @zoomerContext.canvas.height)
+    @context.strokeRect(@coords.x - @zoomerWidthWindow(), @coords.y - @zoomerHeightWindow(), @zoomerContext.canvas.width, @zoomerContext.canvas.height)
+
+  zoomerWidthWindow: ->
+    @options.zoomerWidth / 2
+
+  zoomerHeightWindow: ->
+    @options.zoomerHeight / 2
