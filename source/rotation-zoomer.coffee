@@ -76,7 +76,6 @@ class rotationZoomer
       @height = @dimensions.vert.h
 
   transform: ->
-    console.log('transforming')
     @setWidthAndHeight()
     @context.canvas.width = @width
     @context.canvas.height = @height
@@ -86,8 +85,11 @@ class rotationZoomer
   hasHorizontalRotation: ->
     @deg == 90 || @deg == 270
 
-  redraw: ->
+  clear: ->
     @context.clearRect(0, 0, @context.canvas.width, @context.canvas.height)
+
+  redraw: ->
+    @clear()
     @draw()
 
   draw: ->
@@ -96,8 +98,8 @@ class rotationZoomer
     else
       @context.drawImage(@el, 0, 0, @width, @height)
 
-
   rotate: ->
+    @context.save()
     switch @deg
       when 90
         @context.translate(@width, 0)
@@ -132,31 +134,29 @@ class rotationZoomer
       y: e.clientY - @context.canvas.getBoundingClientRect().top
 
     @sourceCoords =
-      if @deg == 0
-        x: -@coords.x + (@options.zoomerWidth / (@options.scale * 2))
-        y: -@coords.y + (@options.zoomerWidth / (@options.scale * 2))
-      else if @deg == 90
-        x: -@coords.x + (@options.zoomerWidth / (@options.scale * 2))
-        y: -@coords.y + (@options.zoomerWidth / (@options.scale * 2))
-      else if @deg == 180
-        x: @coords.y + (@options.zoomerWidth / (@options.scale * 2))
-        y: @coords.x + (@options.zoomerWidth / (@options.scale * 2))
-
-    console.log(@context.canvas.getBoundingClientRect())
-    console.log(@coords)
-    # console.log(@targetCoords)
+      x: -@coords.x + (@options.zoomerWidth / (@options.scale * 2))
+      y: -@coords.y + (@options.zoomerWidth / (@options.scale * 2))
     @openZoomer()
 
   openZoomer: ->
-    @redraw()
+    @zoomerContext.restore() if @zoomerContext
     @$zoomer = $('<canvas>')
     @zoomerContext = @$zoomer.get(0).getContext('2d')
+
     @zoomerContext.canvas.width = @options.zoomerWidth
     @zoomerContext.canvas.height = @options.zoomerHeight
+    @zoomerContext.save()
     @zoomerContext.scale(@options.scale, @options.scale)
-    # @zoomerContext.rotate((Math.PI / 180) * @deg)
     @zoomerContext.translate(@sourceCoords.x, @sourceCoords.y)
     @zoomerContext.drawImage(@context.canvas, 0, 0)
+
+    # $debug = $('#debug')
+    # debugCtx = $debug.get(0).getContext('2d')
+    # debugCtx.width = @zoomerContext.canvas.width
+    # debugCtx.height = @zoomerContext.canvas.height
+    # debugCtx.drawImage(@zoomerContext.canvas, 0, 0)
+
+    @context.restore()
     @context.drawImage(@zoomerContext.canvas, @coords.x - @zoomerWidthWindow(), @coords.y - @zoomerHeightWindow(), @zoomerContext.canvas.width, @zoomerContext.canvas.height)
     @context.strokeRect(@coords.x - @zoomerWidthWindow(), @coords.y - @zoomerHeightWindow(), @zoomerContext.canvas.width, @zoomerContext.canvas.height)
 

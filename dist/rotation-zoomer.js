@@ -100,7 +100,6 @@
     };
 
     rotationZoomer.prototype.transform = function() {
-      console.log('transforming');
       this.setWidthAndHeight();
       this.context.canvas.width = this.width;
       this.context.canvas.height = this.height;
@@ -111,8 +110,12 @@
       return this.deg === 90 || this.deg === 270;
     };
 
+    rotationZoomer.prototype.clear = function() {
+      return this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+    };
+
     rotationZoomer.prototype.redraw = function() {
-      this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      this.clear();
       return this.draw();
     };
 
@@ -125,6 +128,7 @@
     };
 
     rotationZoomer.prototype.rotate = function() {
+      this.context.save();
       switch (this.deg) {
         case 90:
           this.context.translate(this.width, 0);
@@ -155,30 +159,26 @@
         x: e.clientX - this.context.canvas.getBoundingClientRect().left,
         y: e.clientY - this.context.canvas.getBoundingClientRect().top
       };
-      this.sourceCoords = this.deg === 0 ? {
+      this.sourceCoords = {
         x: -this.coords.x + (this.options.zoomerWidth / (this.options.scale * 2)),
         y: -this.coords.y + (this.options.zoomerWidth / (this.options.scale * 2))
-      } : this.deg === 90 ? {
-        x: -this.coords.x + (this.options.zoomerWidth / (this.options.scale * 2)),
-        y: -this.coords.y + (this.options.zoomerWidth / (this.options.scale * 2))
-      } : this.deg === 180 ? {
-        x: this.coords.y + (this.options.zoomerWidth / (this.options.scale * 2)),
-        y: this.coords.x + (this.options.zoomerWidth / (this.options.scale * 2))
-      } : void 0;
-      console.log(this.context.canvas.getBoundingClientRect());
-      console.log(this.coords);
+      };
       return this.openZoomer();
     };
 
     rotationZoomer.prototype.openZoomer = function() {
-      this.redraw();
+      if (this.zoomerContext) {
+        this.zoomerContext.restore();
+      }
       this.$zoomer = $('<canvas>');
       this.zoomerContext = this.$zoomer.get(0).getContext('2d');
       this.zoomerContext.canvas.width = this.options.zoomerWidth;
       this.zoomerContext.canvas.height = this.options.zoomerHeight;
+      this.zoomerContext.save();
       this.zoomerContext.scale(this.options.scale, this.options.scale);
       this.zoomerContext.translate(this.sourceCoords.x, this.sourceCoords.y);
       this.zoomerContext.drawImage(this.context.canvas, 0, 0);
+      this.context.restore();
       this.context.drawImage(this.zoomerContext.canvas, this.coords.x - this.zoomerWidthWindow(), this.coords.y - this.zoomerHeightWindow(), this.zoomerContext.canvas.width, this.zoomerContext.canvas.height);
       return this.context.strokeRect(this.coords.x - this.zoomerWidthWindow(), this.coords.y - this.zoomerHeightWindow(), this.zoomerContext.canvas.width, this.zoomerContext.canvas.height);
     };
