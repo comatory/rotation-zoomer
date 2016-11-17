@@ -58,25 +58,33 @@
     };
 
     rotationZoomer.prototype.parseOptions = function() {
-      var warning;
+      var ref, ref1, ref2, warning;
       this.options = {
         rotation: this.opts.rotation || 0,
         rotateButton: this.opts.rotateButton,
         antiRotateButton: this.opts.antiRotateButton,
         zoomerWidth: this.opts.ZoomerWidth || 150,
         zoomerHeight: this.opts.ZoomerHeight || 100,
-        scale: this.opts.scale || 2.5,
-        closeOnClick: this.opts.closeOnClick || false,
-        closeOnClickOutside: this.opts.closeOnClickOutside || true,
-        showZoomerAfterRotation: this.opts.showZoomerAfterRotation || true
+        scale: this.opts.scale || 2.5
+      };
+      this.options.closeOnClick = (ref = this.opts.closeOnClick === void 0) != null ? ref : {
+        "false": this.opts.closeOnClick
+      };
+      this.options.closeOnClickOutside = (ref1 = this.opts.closeOnClickOutside === void 0) != null ? ref1 : {
+        "true": this.opts.closeOnClickOutside
+      };
+      this.options.showZoomerAfterRotation = (ref2 = this.opts.showZoomerAfterRotation === void 0) != null ? ref2 : {
+        "true": this.opts.showZoomerAfterRotation
       };
       if (this.opts.closeOnClick === false && this.opts.closeOnClickOutside === false) {
         this.options.closeOnClick = true;
+        this.options.closeOnClickOutside = false;
         warning = "You passed invalid options:\n";
         warning += "Options 'closeOnClick' and 'closeOnClickOutside' were both set to false. You cannot do this.\n";
         warning += "Option 'closeOnClick' was set to true as a default.";
         console.warn(warning);
       }
+      console.log(this.options);
       this.deg = this.options.rotation;
       return this.options;
     };
@@ -119,7 +127,7 @@
       this.setWidthAndHeight();
       this.context.canvas.width = this.width;
       this.context.canvas.height = this.height;
-      return this.rotate();
+      return this.redraw();
     };
 
     rotationZoomer.prototype.rotate = function() {
@@ -136,7 +144,9 @@
           break;
       }
       this.context.rotate((Math.PI / 180) * this.deg);
-      return this.redraw();
+      if (!this.options.showZoomerAfterRotation) {
+        return this.closeZoomer();
+      }
     };
 
     rotationZoomer.prototype.rotateCW = function() {
@@ -161,10 +171,8 @@
 
     rotationZoomer.prototype.redraw = function() {
       this.clear();
-      this.draw();
-      if (!this.options.showZoomerAfterRotation) {
-        return this.initializeZoomer();
-      }
+      this.rotate();
+      return this.draw();
     };
 
     rotationZoomer.prototype.draw = function() {
@@ -181,8 +189,9 @@
         y: e.clientY - this.context.canvas.getBoundingClientRect().top
       };
       if (this.checkClickedArea()) {
-        return this.closeZoomer();
-      } else if (this.zoomerIsOpened === false) {
+        this.closeZoomer();
+        return this.redraw();
+      } else if (this.zoomerIsOpened === false && this.zoomer === null) {
         return this.zoom(e);
       } else {
 
@@ -200,12 +209,12 @@
         return false;
       }
       res = this.didClickOnZoomer();
-      if (this.options.closeOnClick) {
+      if (this.options.closeOnClick && this.options.closeOnClickOutside) {
+        return true;
+      } else if (this.options.closeOnClick) {
         return res;
-      } else if (this.options.closeOnClickOutside) {
-        return !res;
       } else {
-        return false;
+        return !res;
       }
     };
 
@@ -215,7 +224,7 @@
 
     rotationZoomer.prototype.closeZoomer = function() {
       this.zoomer = null;
-      return this.redraw();
+      return this.zoomerIsOpened = false;
     };
 
     rotationZoomer.prototype.openZoomer = function() {
@@ -235,7 +244,7 @@
     };
 
     rotationZoomer.prototype.initializeZoomer = function() {
-      if (!this.zoomer) {
+      if (!(this.zoomer || this.zoomerIsOpened)) {
         return;
       }
       this.context.restore();
@@ -249,8 +258,6 @@
 
   Zoomer = (function() {
     function Zoomer(context, instanceOptions, x, y) {
-      console.log(x);
-      console.log(y);
       this.context = $.extend(true, {}, context);
       this.instanceOptions = instanceOptions;
       this.x = x;

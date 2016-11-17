@@ -60,17 +60,21 @@ class rotationZoomer
       zoomerWidth: @opts.ZoomerWidth || 150
       zoomerHeight: @opts.ZoomerHeight || 100
       scale: @opts.scale || 2.5
-      closeOnClick: @opts.closeOnClick || false
-      closeOnClickOutside: @opts.closeOnClickOutside || true
-      showZoomerAfterRotation: @opts.showZoomerAfterRotation || true
+
+    @options.closeOnClick = @opts.closeOnClick == undefined ? false : @opts.closeOnClick
+    @options.closeOnClickOutside = @opts.closeOnClickOutside == undefined ? true : @opts.closeOnClickOutside
+    @options.showZoomerAfterRotation = @opts.showZoomerAfterRotation == undefined ? true : @opts.showZoomerAfterRotation
 
     # Invoke warning, correct options
     if @opts.closeOnClick == false && @opts.closeOnClickOutside == false
       @options.closeOnClick = true
+      @options.closeOnClickOutside = false
       warning = "You passed invalid options:\n"
       warning += "Options 'closeOnClick' and 'closeOnClickOutside' were both set to false. You cannot do this.\n"
       warning += "Option 'closeOnClick' was set to true as a default."
       console.warn(warning)
+
+    console.log(@options)
 
     # Set intial rotation
     @deg = @options.rotation
@@ -109,7 +113,7 @@ class rotationZoomer
     @setWidthAndHeight()
     @context.canvas.width = @width
     @context.canvas.height = @height
-    @rotate()
+    @redraw()
 
   rotate: ->
     # Context is saved so it can be reinitialized later for zooemr windows
@@ -126,7 +130,7 @@ class rotationZoomer
         break
 
     @context.rotate((Math.PI / 180) * @deg)
-    @redraw()
+    @closeZoomer() unless @options.showZoomerAfterRotation
 
   # Clockwise rotation detected
   rotateCW: ->
@@ -157,8 +161,8 @@ class rotationZoomer
   # Called after rotatio
   redraw: ->
     @clear()
+    @rotate()
     @draw()
-    @initializeZoomer() unless @options.showZoomerAfterRotation
 
   draw: ->
     if @hasHorizontalRotation()
@@ -176,31 +180,35 @@ class rotationZoomer
     # See whether zoomer was clicked
     if @checkClickedArea()
       @closeZoomer()
-    else if @zoomerIsOpened == false
+      @redraw()
+    else if @zoomerIsOpened == false && @zoomer == null
       @zoom(e)
     else
-      return  
+      # Don't do anything, keep zoomer closed or opened
+      return
 
   didClickOnZoomer: ->
     @zoomerIsOpened = @zoomer.inBounds(@coords)
     @zoomerIsOpened
 
   checkClickedArea: ->
+    # Need to open zoome when there's none
     return false unless @zoomer
     res = @didClickOnZoomer()
-    if @options.closeOnClick
+    # Always close on any click with these options
+    if @options.closeOnClick && @options.closeOnClickOutside
+      return true
+    else if @options.closeOnClick
       return res
-    else if @options.closeOnClickOutside
-      return !res
     else
-      return false
+      return !res
 
   zoom: (e) =>
     @openZoomer()
 
   closeZoomer: ->
     @zoomer = null
-    @redraw()
+    @zoomerIsOpened = false
 
   # New zoomer
   openZoomer: ->
@@ -223,7 +231,7 @@ class rotationZoomer
     @initializeZoomer()
 
   initializeZoomer: ->
-    return unless @zoomer
+    return unless @zoomer || @zoomerIsOpened
     # Reset rotation zoomer canvas (context is translated during rotation)
     @context.restore()
 
@@ -241,8 +249,6 @@ class rotationZoomer
 # Represents zoomer window on canvas
 class Zoomer
   constructor: (context, instanceOptions, x, y) ->
-    console.log(x)
-    console.log(y)
     # Copy over canvas attributes
     @context = $.extend(true, {}, context)
     # Options from rotation zoomer plugin
