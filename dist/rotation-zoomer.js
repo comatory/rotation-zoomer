@@ -40,7 +40,7 @@
         }
       };
       this.zoomer = null;
-      this.zoomerIsOpened = false;
+      this.wasCW = null;
       return this.initializeCanvas();
     };
 
@@ -143,24 +143,26 @@
         case 180:
           this.context.translate(this.width, this.height);
           break;
+        default:
+          this.context.translate(0, 0);
+          break;
       }
       this.context.rotate((Math.PI / 180) * this.deg);
       if (!this.options.showZoomerAfterRotation) {
-        this.closeZoomer();
-      }
-      if (this.options.showZoomerAfterRotation && this.zoomerIsOpened) {
-        return this.initializeZoomer();
+        return this.closeZoomer;
       }
     };
 
     rotationZoomer.prototype.rotateCW = function() {
       this.deg = this.deg + 90 >= 360 ? 0 : this.deg + 90;
+      this.wasCW = true;
       this.transform();
       return this.deg;
     };
 
     rotationZoomer.prototype.rotateACW = function() {
       this.deg = this.deg - 90 < 0 ? 270 : this.deg - 90;
+      this.wasCW = false;
       this.transform();
       return this.deg;
     };
@@ -181,9 +183,12 @@
 
     rotationZoomer.prototype.draw = function() {
       if (this.hasHorizontalRotation()) {
-        return this.context.drawImage(this.el, 0, 0, this.height, this.width);
+        this.context.drawImage(this.el, 0, 0, this.height, this.width);
       } else {
-        return this.context.drawImage(this.el, 0, 0, this.width, this.height);
+        this.context.drawImage(this.el, 0, 0, this.width, this.height);
+      }
+      if (this.options.showZoomerAfterRotation && this.zoomer !== null) {
+        return this.reopenZoomer();
       }
     };
 
@@ -195,7 +200,7 @@
       if (this.checkClickedArea()) {
         this.closeZoomer();
         return this.redraw();
-      } else if (this.zoomerIsOpened === false && this.zoomer === null) {
+      } else if (this.zoomer === null) {
         return this.zoom(e);
       } else {
 
@@ -203,8 +208,7 @@
     };
 
     rotationZoomer.prototype.didClickOnZoomer = function() {
-      this.zoomerIsOpened = this.zoomer.inBounds(this.coords);
-      return this.zoomerIsOpened;
+      return this.zoomer.inBounds(this.coords);
     };
 
     rotationZoomer.prototype.checkClickedArea = function() {
@@ -227,8 +231,21 @@
     };
 
     rotationZoomer.prototype.closeZoomer = function() {
-      this.zoomer = null;
-      return this.zoomerIsOpened = false;
+      return this.zoomer = null;
+    };
+
+    rotationZoomer.prototype.reopenZoomer = function() {
+      var x, y;
+      x = this.zoomer.x;
+      y = this.zoomer.y;
+      if (this.wasCW) {
+        this.coords.x = this.width - y;
+        this.coords.y = x;
+      } else {
+        this.coords.x = y;
+        this.coords.y = this.height - x;
+      }
+      return this.openZoomer();
     };
 
     rotationZoomer.prototype.openZoomer = function() {
@@ -243,19 +260,15 @@
       zoomerContext.scale(this.options.scale, this.options.scale);
       zoomerContext.translate(this.sourceCoords.x, this.sourceCoords.y);
       zoomerContext.drawImage(this.context.canvas, 0, 0);
-      console.log(this.coords.x, this.coords.y);
-      this.zoomer = new Zoomer(zoomerContext, this.options, this.coords.x, this.coords.y);
+      this.zoomer = new Zoomer(zoomerContext, this, this.coords.x, this.coords.y);
+      console.log(this.zoomer.x, this.zoomer.y);
       return this.initializeZoomer();
     };
 
     rotationZoomer.prototype.initializeZoomer = function() {
       this.context.restore();
-      if (this.zoomerIsOpened && this.options.showZoomerAfterRotation) {
-        this.zoomer.transformPosition();
-      }
       this.context.drawImage(this.zoomer.context.canvas, this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
-      this.context.strokeRect(this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
-      return this.zoomerIsOpened = true;
+      return this.context.strokeRect(this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
     };
 
     return rotationZoomer;
@@ -263,9 +276,10 @@
   })();
 
   Zoomer = (function() {
-    function Zoomer(context, instanceOptions, x, y) {
+    function Zoomer(context, instance, x, y) {
       this.context = $.extend(true, {}, context);
-      this.instanceOptions = instanceOptions;
+      this.instance = instance;
+      this.instanceOptions = instance.options;
       this.x = x;
       this.y = y;
       this.bounds = {
@@ -305,10 +319,6 @@
         for (var i = ref = this.bounds.left, ref1 = this.bounds.left + this.bounds.width; ref <= ref1 ? i <= ref1 : i >= ref1; ref <= ref1 ? i++ : i--){ results.push(i); }
         return results;
       }).apply(this);
-    };
-
-    Zoomer.prototype.transformPosition = function() {
-      return console.log(this.x, this.y);
     };
 
     return Zoomer;
