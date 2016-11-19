@@ -14,4 +14,4 @@ The behaviour is as expected from any other jQuery plugin. This is the most simp
 
 ## Examples
 
-Please see [Project page]() for all configurations and examples on how to use this.
+Please see [Project page](https://comatory.github.io/rotation-zoomer/) for all configurations and examples on how to use this.
