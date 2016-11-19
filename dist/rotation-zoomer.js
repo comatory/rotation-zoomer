@@ -58,14 +58,17 @@
     };
 
     rotationZoomer.prototype.parseOptions = function() {
-      var warning;
+      var ref, warning;
       this.options = {
         rotation: this.opts.rotation || 0,
         rotateButton: this.opts.rotateButton,
         antiRotateButton: this.opts.antiRotateButton,
-        zoomerWidth: this.opts.ZoomerWidth || 150,
-        zoomerHeight: this.opts.ZoomerHeight || 100,
+        zoomerWidth: this.extractNums(this.opts.ZoomerWidth || 150),
+        zoomerHeight: this.extractNums(this.opts.ZoomerHeight || 100),
         scale: this.opts.scale || 2.5,
+        zoomerBorderWidth: this.extractNums(this.opts.zoomerBorderWidth || 1),
+        zoomerBorderColor: this.opts.zoomerBorderColor || 'black',
+        zoomerBackgroundColor: this.opts.zoomerBackgroundColor || 'white',
         closeOnClick: this.setDefault(this.opts.closeOnClick, false),
         closeOnClickOutside: this.setDefault(this.opts.closeOnClickOutside, true),
         showZoomerAfterRotation: this.setDefault(this.opts.showZoomerAfterRotation, true)
@@ -78,6 +81,13 @@
         warning += "Option 'closeOnClick' was set to true as a default.";
         console.warn(warning);
       }
+      if ((ref = this.options.rotation) !== 0 && ref !== 90 && ref !== 180 && ref !== 270) {
+        this.options.rotation = 0;
+        warning = "You passed invalid options:\n";
+        warning += "Options 'rotation' has invalid values, it must be in [0, 90, 180, 270].";
+        warning += "No other values allowed! Rotation set to 0.";
+        console.warn(warning);
+      }
       this.deg = this.options.rotation;
       return this.options;
     };
@@ -88,6 +98,11 @@
       } else {
         return opt;
       }
+    };
+
+    rotationZoomer.prototype.extractNums = function(opt) {
+      opt = new String(opt);
+      return parseInt(opt.replace(/^\D+/g, ''));
     };
 
     rotationZoomer.prototype.bindControls = function() {
@@ -226,6 +241,27 @@
       }
     };
 
+    rotationZoomer.prototype.inBounds = function() {
+      if (this.zoomer.originX() + this.zoomerWidth() >= this.width) {
+        this.zoomer.x = this.width - (this.zoomerWidth() / 2);
+      } else if (this.zoomer.originX() <= 0) {
+        this.zoomer.x = this.zoomerWidth() / 2;
+      }
+      if (this.zoomer.originY() + this.zoomerHeight() >= this.height) {
+        return this.zoomer.y = this.height - (this.zoomerHeight() / 2);
+      } else if (this.zoomer.originY() <= 0) {
+        return this.zoomer.y = this.zoomerHeight() / 2;
+      }
+    };
+
+    rotationZoomer.prototype.zoomerWidth = function() {
+      return this.options.zoomerWidth + (2 * this.options.zoomerBorderWidth);
+    };
+
+    rotationZoomer.prototype.zoomerHeight = function() {
+      return this.options.zoomerHeight + (2 * this.options.zoomerBorderWidth);
+    };
+
     rotationZoomer.prototype.zoom = function(e) {
       return this.openZoomer();
     };
@@ -257,17 +293,21 @@
       zoomerContext = $('<canvas>').get(0).getContext('2d');
       zoomerContext.canvas.width = this.options.zoomerWidth;
       zoomerContext.canvas.height = this.options.zoomerHeight;
+      zoomerContext.fillStyle = this.options.zoomerBackgroundColor;
+      zoomerContext.fillRect(0, 0, zoomerContext.canvas.width, zoomerContext.canvas.height);
       zoomerContext.scale(this.options.scale, this.options.scale);
       zoomerContext.translate(this.sourceCoords.x, this.sourceCoords.y);
       zoomerContext.drawImage(this.context.canvas, 0, 0);
-      this.zoomer = new Zoomer(zoomerContext, this, this.coords.x, this.coords.y);
-      console.log(this.zoomer.x, this.zoomer.y);
+      this.zoomer = new Zoomer(zoomerContext, this);
       return this.initializeZoomer();
     };
 
     rotationZoomer.prototype.initializeZoomer = function() {
       this.context.restore();
+      this.inBounds();
       this.context.drawImage(this.zoomer.context.canvas, this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
+      this.context.strokeStyle = this.options.zoomerBorderColor;
+      this.context.lineWidth = this.options.zoomerBorderWidth;
       return this.context.strokeRect(this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
     };
 
@@ -276,17 +316,17 @@
   })();
 
   Zoomer = (function() {
-    function Zoomer(context, instance, x, y) {
+    function Zoomer(context, instance) {
       this.context = $.extend(true, {}, context);
       this.instance = instance;
       this.instanceOptions = instance.options;
-      this.x = x;
-      this.y = y;
+      this.x = instance.coords.x;
+      this.y = instance.coords.y;
       this.bounds = {
         top: this.originY(),
         left: this.originX(),
-        width: this.instanceOptions.zoomerWidth,
-        height: this.instanceOptions.zoomerHeight
+        width: this.instance.zoomerWidth(),
+        height: this.instance.zoomerHeight()
       };
     }
 

@@ -57,9 +57,12 @@ class rotationZoomer
       rotation: @opts.rotation || 0
       rotateButton: @opts.rotateButton
       antiRotateButton: @opts.antiRotateButton
-      zoomerWidth: @opts.ZoomerWidth || 150
-      zoomerHeight: @opts.ZoomerHeight || 100
+      zoomerWidth: @extractNums(@opts.ZoomerWidth || 150)
+      zoomerHeight: @extractNums(@opts.ZoomerHeight || 100)
       scale: @opts.scale || 2.5
+      zoomerBorderWidth: @extractNums(@opts.zoomerBorderWidth || 1)
+      zoomerBorderColor: @opts.zoomerBorderColor || 'black'
+      zoomerBackgroundColor: @opts.zoomerBackgroundColor || 'white'
       closeOnClick: @setDefault(@opts.closeOnClick, false)
       closeOnClickOutside: @setDefault(@opts.closeOnClickOutside, true)
       showZoomerAfterRotation: @setDefault(@opts.showZoomerAfterRotation, true)
@@ -73,16 +76,30 @@ class rotationZoomer
       warning += "Option 'closeOnClick' was set to true as a default."
       console.warn(warning)
 
+    # Invoke warning for invalid rotation numbers
+    if @options.rotation not in [0, 90, 180, 270]
+      @options.rotation = 0
+      warning = "You passed invalid options:\n"
+      warning += "Options 'rotation' has invalid values, it must be in [0, 90, 180, 270]."
+      warning += "No other values allowed! Rotation set to 0."
+      console.warn(warning)
+
     # Set intial rotation
     @deg = @options.rotation
     # Return
     @options
 
+  # Check for undefined/null for boolean values
   setDefault: (opt, def) ->
     if opt == undefined || opt == null
       return def
     else
       return opt
+
+  # Extract numbers if passing accidently value w/ px
+  extractNums: (opt) ->
+    opt = new String(opt)
+    return parseInt(opt.replace(/^\D+/g, ''))
 
   # Event handlers
   bindControls: ->
@@ -214,6 +231,26 @@ class rotationZoomer
     else
       return !res
 
+  # Check if zoomer fits within canvas
+  inBounds: ->
+    if @zoomer.originX() + @zoomerWidth() >= @width
+      @zoomer.x = @width - (@zoomerWidth() / 2)
+    else if @zoomer.originX() <= 0
+      @zoomer.x = (@zoomerWidth() / 2)
+
+    if @zoomer.originY() + @zoomerHeight() >= @height
+      @zoomer.y = @height - (@zoomerHeight() / 2)
+    else if  @zoomer.originY() <= 0
+      @zoomer.y = (@zoomerHeight() / 2)
+
+  # Calculate complete width w/ borders
+  zoomerWidth: ->
+    return @options.zoomerWidth + (2 * @options.zoomerBorderWidth)
+
+  # Calculate complete height w/ borders
+  zoomerHeight: ->
+    return @options.zoomerHeight + (2 * @options.zoomerBorderWidth)
+
   zoom: (e) =>
     @openZoomer()
 
@@ -244,20 +281,23 @@ class rotationZoomer
     zoomerContext = $('<canvas>').get(0).getContext('2d')
     zoomerContext.canvas.width = @options.zoomerWidth
     zoomerContext.canvas.height = @options.zoomerHeight
+    # Fill background when displaying zoomer on edge
+    zoomerContext.fillStyle = @options.zoomerBackgroundColor
+    zoomerContext.fillRect(0, 0, zoomerContext.canvas.width, zoomerContext.canvas.height)
     # Scale and translate
     zoomerContext.scale(@options.scale, @options.scale)
     zoomerContext.translate(@sourceCoords.x, @sourceCoords.y)
     zoomerContext.drawImage(@context.canvas, 0, 0)
 
     # Add zoomer data to object
-    @zoomer = new Zoomer(zoomerContext, this, @coords.x, @coords.y)
-    console.log @zoomer.x, @zoomer.y
+    @zoomer = new Zoomer(zoomerContext, this)
 
     @initializeZoomer()
 
   initializeZoomer: ->
     # Reset rotation zoomer canvas (context is translated during rotation)
     @context.restore()
+    @inBounds()
 
     # Draw zoomer on canvas
     @context.drawImage(
@@ -265,6 +305,8 @@ class rotationZoomer
       @zoomer.context.canvas.width, @zoomer.context.canvas.height
     )
     # Add borders
+    @context.strokeStyle = @options.zoomerBorderColor
+    @context.lineWidth = @options.zoomerBorderWidth
     @context.strokeRect(
       @zoomer.originX(), @zoomer.originY(),
       @zoomer.context.canvas.width, @zoomer.context.canvas.height
@@ -272,7 +314,7 @@ class rotationZoomer
 
 # Represents zoomer window on canvas
 class Zoomer
-  constructor: (context, instance, x, y) ->
+  constructor: (context, instance) ->
     # Copy over canvas attributes
     @context = $.extend(true, {}, context)
     # Instance of plugin
@@ -280,15 +322,15 @@ class Zoomer
     # Options from rotation zoomer plugin
     @instanceOptions = instance.options
     # True origin X
-    @x = x
+    @x = instance.coords.x
     # True origin Y
-    @y = y
+    @y = instance.coords.y
     # Is zoomer opened?
     @bounds =
       top: @originY()
       left: @originX()
-      width: @instanceOptions.zoomerWidth
-      height: @instanceOptions.zoomerHeight
+      width: @instance.zoomerWidth()
+      height: @instance.zoomerHeight()
 
   # Center content of zoomer window horizontally
   originX: ->
