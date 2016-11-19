@@ -6,6 +6,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" type="text/javascript"></script>
   <script src="../dist/rotation-zoomer.min.js" type="text/javascript"></script>
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.2.0/milligram.min.css">
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.6.329/compatibility.min.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.6.329/pdf.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.6.329/pdf.min.js"></script> -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.6.329/pdf.min.js"></script> -->
   <style>
     body {
       max-width: 1200px;
@@ -26,7 +30,11 @@
         Once you call the function on <em>image</em> or <em>canvas</em> element, that element becomes hidden and is instead replaced by canvas element where the actual manipulation occurs.
       </p>
       <p>
-        The source is written in CoffeeScript v. 1.11.0 and compoled & minified using coffeebar. The images are by artist Matthew Divito and are taken from his personal webpage.
+        The source is written in CoffeeScript v. 1.11.0 and composed & minified using <a href="https://www.npmjs.com/package/coffeebar">coffeebar</a>. The images are by artist <a href="http://cargocollective.com/matthewdivito">Matthew Divito and are taken from his personal webpage</a>.
+      </p>
+      <h2>Compatibility</h2>
+      <p>
+        For now, the plugin is only tested against newest browsers (Safari 6 & Chrome 50). The version of jQuery used is 3.1.1.
       </p>
     </div>
   </div>
@@ -112,6 +120,7 @@
                 zoomerWidth: 200,
                 zoomerHeight: 250,
                 scale: 5.0,
+                rotation: 180,
                 closeOnClick: true,
                 rotateButton: '#rotateButton',
                 antiRotateButton: '#antiRotateButton'
@@ -166,6 +175,50 @@
         </div>
       </div>
     </div>
+
+    <br />
+    <div class="row">
+      <div class="column">
+        <h3>PDFs & pages (in progress)</h3>
+        <p>You can also use other canvases as target element. Here it's demonstrated with multiple-paged PDF document rendered via <a href="https://mozilla.github.io/pdf.js/">PDFjs library</a> which outputs the pages as canvas elements.</p>
+        <p><em>Click rotation button to show the PDFs. This will be fixed soon.</em></p>
+        <pre>
+          <code>
+            var canvasContainer = document.getElementById('pdf');
+            var scale = 1.5;
+
+            function renderPage(page) {
+                var viewport = page.getViewport(scale);
+                var canvas = document.createElement('canvas');
+                var context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                var renderContext = {
+                  canvasContext: context,
+                  viewport: viewport
+                };
+                canvasContainer.appendChild(canvas)
+                page.render(renderContext);
+                $(canvas).rotationZoomer({
+                  closeOnClick: true,
+                  rotateButton: '#pdfRotate'
+                });
+            }
+
+            PDFJS.getDocument('compressed.tracemonkey-pldi-09.pdf').then(function(pdf) {
+              for (var num = 1; num <= 3; num++) {
+                pdf.getPage(num).then(renderPage);
+              }
+            });
+          </code>
+        </pre>
+        <div>
+          <button id="pdfRotate">Rotate clock-wise</button>
+        </div>
+        <div id="pdf"></div>
+      </div>
+    </div>
   </div>
 
   <div class="row">
@@ -194,6 +247,7 @@
       zoomerWidth: 200,
       zoomerHeight: 250,
       scale: 5.0,
+      rotation: 180,
       closeOnClick: true,
       rotateButton: '#rotateButton',
       antiRotateButton: '#antiRotateButton'
@@ -206,6 +260,34 @@
       zoomerBorderWidth: 3,
       zoomerBorderColor: 'white',
       closeOnClick: true
+    });
+
+    var canvasContainer = document.getElementById('pdf');
+    var scale = 1.5;
+
+    function renderPage(page) {
+        var viewport = page.getViewport(scale);
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        var renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+        canvasContainer.appendChild(canvas)
+        page.render(renderContext);
+        $(canvas).rotationZoomer({
+          closeOnClick: true,
+          rotateButton: '#pdfRotate'
+        });
+    }
+
+    PDFJS.getDocument('compressed.tracemonkey-pldi-09.pdf').then(function(pdf) {
+      for (var num = 1; num <= 3; num++) {
+        pdf.getPage(num).then(renderPage);
+      }
     });
   </script>
 </body>
