@@ -31,7 +31,7 @@
       </p>
       <h2>Compatibility</h2>
       <p>
-        For now, the plugin is only tested against newest browsers (Safari 6 & Chrome 50). The version of jQuery used is 3.1.1.
+        For now, the plugin is only tested against newest browsers (Safari 10 & Chrome 50). The version of jQuery used is 3.1.1.
       </p>
     </div>
   </div>
@@ -47,7 +47,7 @@
         </pre>
       </p>
       <div>
-        <img src="./01.jpg" alt="" id="example1" style="display: block;">
+        <img src="https://cloud.githubusercontent.com/assets/5990424/20459207/c10ad798-aeb9-11e6-8429-9fc27f10916d.jpg" alt="" id="example1" style="display: block;">
       </div>
       <p>
         In this configuration without any arguments you get just default behaviour. This default behaviour is just zoom function, no rotation (you need to specify rotation buttons for that). The zoom window is disabled when you click outside of it.
@@ -129,7 +129,7 @@
             <button id="antiRotateButton">Rotate anti clock-wise</button>
           </div>
           <div>
-            <img src="02.jpg" id="example2" alt="">
+            <img src="https://cloud.githubusercontent.com/assets/5990424/20459212/ce4039da-aeb9-11e6-923a-b3b24ec6fe34.jpg" id="example2" alt="">
           </div>
 
         </div>
@@ -157,16 +157,18 @@
             <button id="antiRotateButton02">Rotate anti clock-wise</button>
           </div>
           <p><b>250px</b></p>
-          <div>
-            <img src="01.jpg" id="set01" alt="" width="250px">
-          </div>
-          <p><b>300px</b></p>
-          <div>
-            <img src="02.jpg" id="set02" alt="" width="300px">
-          </div>
-          <p><b>450px</b></p>
-          <div>
-            <img src="03.jpg" id="set03" alt="" width="450px">
+          <div class="images">
+            <div>
+              <img src="https://cloud.githubusercontent.com/assets/5990424/20459207/c10ad798-aeb9-11e6-8429-9fc27f10916d.jpg" id="set01" alt="" width="250px">
+            </div>
+            <p><b>300px</b></p>
+            <div>
+              <img src="https://cloud.githubusercontent.com/assets/5990424/20459212/ce4039da-aeb9-11e6-923a-b3b24ec6fe34.jpg" id="set02" alt="" width="300px">
+            </div>
+            <p><b>450px</b></p>
+            <div>
+              <img src="https://cloud.githubusercontent.com/assets/5990424/20459211/ce3e62ea-aeb9-11e6-9995-2c05656dfde5.jpg" id="set03" alt="" width="450px">
+            </div>
           </div>
           </div>
         </div>
@@ -238,26 +240,29 @@
   </div>
 
   <script>
-    $('#example1').rotationZoomer();
+    window.onload = function() {
 
-    $('#example2').rotationZoomer({
-      zoomerWidth: 200,
-      zoomerHeight: 250,
-      scale: 5.0,
-      rotation: 180,
-      closeOnClick: true,
-      rotateButton: '#rotateButton',
-      antiRotateButton: '#antiRotateButton'
-    });
+      $('#example1').rotationZoomer();
 
-    $('#set01, #set02, #set03').rotationZoomer({
-      rotateButton: '#rotateButton02',
-      antiRotateButton: '#antiRotateButton02',
-      scale: 1.8,
-      zoomerBorderWidth: 3,
-      zoomerBorderColor: 'white',
-      closeOnClick: true
-    });
+      $('#example2').rotationZoomer({
+        zoomerWidth: 200,
+        zoomerHeight: 250,
+        scale: 5.0,
+        rotation: 180,
+        closeOnClick: true,
+        rotateButton: '#rotateButton',
+        antiRotateButton: '#antiRotateButton'
+      });
+
+      $('#set01, #set02, #set03').rotationZoomer({
+        rotateButton: '#rotateButton02',
+        antiRotateButton: '#antiRotateButton02',
+        scale: 1.8,
+        zoomerBorderWidth: 3,
+        zoomerBorderColor: 'white',
+        closeOnClick: true
+      });
+    }
 
     var canvasContainer = document.getElementById('pdf');
     var scale = 1.5;
