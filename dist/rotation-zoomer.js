@@ -63,6 +63,7 @@
         rotation: this.opts.rotation || 0,
         rotateButton: this.opts.rotateButton,
         antiRotateButton: this.opts.antiRotateButton,
+        zoomerEnabled: this.setDefault(this.opts.zoomerEnabled, true),
         zoomerWidth: this.extractNums(this.opts.ZoomerWidth || 150),
         zoomerHeight: this.extractNums(this.opts.ZoomerHeight || 100),
         scale: this.opts.scale || 2.5,
@@ -88,6 +89,7 @@
         warning += "No other values allowed! Rotation set to 0.";
         console.warn(warning);
       }
+      console.log(this.options);
       this.deg = this.options.rotation;
       return this.options;
     };
@@ -126,7 +128,9 @@
           };
         })(this));
       }
-      return this.$canvas.on('click', this.handleClick);
+      if (this.options.zoomerEnabled) {
+        return this.$canvas.on('click', this.handleClick);
+      }
     };
 
     rotationZoomer.prototype.setWidthAndHeight = function() {

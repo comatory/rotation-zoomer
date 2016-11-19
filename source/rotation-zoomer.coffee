@@ -57,6 +57,7 @@ class rotationZoomer
       rotation: @opts.rotation || 0
       rotateButton: @opts.rotateButton
       antiRotateButton: @opts.antiRotateButton
+      zoomerEnabled: @setDefault(@opts.zoomerEnabled, true)
       zoomerWidth: @extractNums(@opts.ZoomerWidth || 150)
       zoomerHeight: @extractNums(@opts.ZoomerHeight || 100)
       scale: @opts.scale || 2.5
@@ -83,6 +84,8 @@ class rotationZoomer
       warning += "Options 'rotation' has invalid values, it must be in [0, 90, 180, 270]."
       warning += "No other values allowed! Rotation set to 0."
       console.warn(warning)
+
+    console.log @options
 
     # Set intial rotation
     @deg = @options.rotation
@@ -117,7 +120,7 @@ class rotationZoomer
       @$antiRotateButton.on 'click', =>
         @rotateACW()
 
-    @$canvas.on 'click', @handleClick
+    @$canvas.on 'click', @handleClick if @options.zoomerEnabled
 
   # Set rotation-zoomer element's dimensions
   setWidthAndHeight: ->

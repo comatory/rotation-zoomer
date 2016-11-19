@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RotationZoomer jQuery plugin</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" type="text/javascript"></script>
+  <script src="../dist/rotation-zoomer.min.js" type="text/javascript"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.2.0/milligram.min.css">
+  <style>
+    body {
+      max-width: 1200px;
+      margin: 10px auto;
+      padding: 30px;
+    }
+  </style>
+</head>
+<body>
+  <a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+  <div class="row">
+    <div class="column">
+      <h1>RotationZoomer jQuery plugin</h1>
+        <p>
+        This plugin allows you to easily rotate and zoom images/canvas elements in simplistic fashion. It offers rotation in place without worrying about padding or margin. Elements can only be rotated by 90 degree angles.
+      </p>
+      <p>
+        Once you call the function on <em>image</em> or <em>canvas</em> element, that element becomes hidden and is instead replaced by canvas element where the actual manipulation occurs.
+      </p>
+      <p>
+        The source is written in CoffeeScript v. 1.11.0 and compoled & minified using coffeebar. The images are by artist Matthew Divito and are taken from his personal webpage.
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="column">
+      <h2>Usage</h2>
+      <p>The behaviour is as expected from any other jQuery plugin. This is the most simple configuration:<br/ >
+        <pre>
+          <code>
+            $('#example1').rotationZoomer();
+          </code>
+        </pre>
+      </p>
+      <div>
+        <img src="./01.jpg" alt="" id="example1" style="display: block;">
+      </div>
+      <p>
+        In this configuration without any arguments you get just default behaviour. This default behaviour is just zoom function, no rotation (you need to specify rotation buttons for that). The zoom window is disabled when you click outside of it.
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="column">
+      <h2>Configuration</h2>
+      <p>
+        Following options can be specified:<br/>
+        <dl>
+          <dt>rotation</dt>
+          <dd>(Integer: [0, 90, 180, 270] - Starting rotation (in degrees). Default is 0.</dd>
+
+          <dt>rotateButton</dt>
+          <dd>(ID of HTML element) - Button that rotates canvas clock-wise</dd>
+
+          <dt>antiRotateButton</dt>
+          <dd>(ID of HTML element) - Button that rotates canvas anti clock-wise</dd>
+
+          <dt>zoomerEnabled</dt>
+          <dd>(Boolean) - Enable or disable zooming functionality. Default is true.</dd>
+
+          <dt>zoomerWidth</dt>
+          <dd>(Integer) - The width (converted to px) of the zoomer window. Default is 150.</dd>
+
+          <dt>zoomerHeight</dt>
+          <dd>(Integer) - The height (converted to px) of the zoomer window. Default is 100.</dd>
+
+          <dt>scale</dt>
+          <dd>(Float, Integer) - The amount of scale factor that is applied to zoomer. Default is 2.5.</dd>
+
+          <dt>zoomerBorderWidth</dt>
+          <dd>(Integer) - Border width of zoomer window (converted to px). Default is 1.</dd>
+
+          <dt>zoomerBorderColor</dt>
+          <dd>(String, Hexcode) - Border color of zoomer window.</dd>
+
+          <dt>zoomerBackgroundColor</dt>
+          <dd>(String, Hexcode) - The fill of zoomer window. It's used when the zoomer window is on the edge of canvas, otherwise it'd be transparent. Default is white.</dd>
+
+          <dt>closeOnClick</dt>
+          <dd>(Boolean) - When zoomer window is clicked, it is also closed. Default is false.</dd>
+
+          <dt>closeOnClickOutside</dt>
+          <dd>(Boolean) - When outside of zoomer window is clicked, it will be closed. Default is true.</dd>
+
+          <dt>showZoomerAfterRotation</dt>
+          <dd>(Boolean) - When you leave zoomer window opened and you rotate image, the zoomer window will be kept open in new recalculated position. Default is true.</dd>
+        </dl>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="column">
+      <br />
+      <h2>Examples</h2>
+      <div class="row">
+        <div class="column">
+          <h3>Zooming and rotating</h3>
+          <pre>
+            <code>
+              $('#example2').rotationZoomer({
+                zoomerWidth: 200,
+                zoomerHeight: 250,
+                scale: 5.0,
+                closeOnClick: true,
+                rotateButton: '#rotateButton',
+                antiRotateButton: '#antiRotateButton'
+              });
+            </code>
+          </pre>
+          <div>
+            <button id="rotateButton">Rotate clock-wise</button>
+            <button id="antiRotateButton">Rotate anti clock-wise</button>
+          </div>
+          <div>
+            <img src="02.jpg" id="example2" alt="">
+          </div>
+
+        </div>
+      </div>
+
+      <br />
+      <div class="row">
+        <div class="column">
+          <h3>Multiple images with set widths</h3>
+          <p>IMG tags have set widths, canvas keeps the same size and constraints to correct ratio.</p>
+          <pre>
+            <code>
+              $('#set01, #set02, #set03').rotationZoomer({
+                rotateButton: '#rotateButton02',
+                antiRotateButton: '#antiRotateButton02',
+                scale: 1.8,
+                zoomerBorderWidth: 3,
+                zoomerBorderColor: 'white',
+                closeOnClick: true
+              });
+            </code>
+          </pre>
+          <div>
+            <button id="rotateButton02">Rotate clock-wise</button>
+            <button id="antiRotateButton02">Rotate anti clock-wise</button>
+          </div>
+          <p><b>250px</b></p>
+          <div>
+            <img src="01.jpg" id="set01" alt="" width="250px">
+          </div>
+          <p><b>300px</b></p>
+          <div>
+            <img src="02.jpg" id="set02" alt="" width="300px">
+          </div>
+          <p><b>450px</b></p>
+          <div>
+            <img src="03.jpg" id="set03" alt="" width="450px">
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="column">
+      <h2>Todo</h2>
+      <p>
+        <ul>
+          <li>
+            Add responsive resizing
+          </li>
+          <li>
+            Fill up zoomer window when on edge
+          </li>
+          <li>
+            Add icons for hovering and customizations
+          </li>
+        </ul>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    $('#example1').rotationZoomer();
+
+    $('#example2').rotationZoomer({
+      zoomerWidth: 200,
+      zoomerHeight: 250,
+      scale: 5.0,
+      closeOnClick: true,
+      rotateButton: '#rotateButton',
+      antiRotateButton: '#antiRotateButton'
+    });
+
+    $('#set01, #set02, #set03').rotationZoomer({
+      rotateButton: '#rotateButton02',
+      antiRotateButton: '#antiRotateButton02',
+      scale: 1.8,
+      zoomerBorderWidth: 3,
+      zoomerBorderColor: 'white',
+      closeOnClick: true
+    });
+  </script>
+</body>
+</html>
