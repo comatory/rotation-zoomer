@@ -58,23 +58,17 @@
     };
 
     rotationZoomer.prototype.parseOptions = function() {
-      var ref, ref1, ref2, warning;
+      var warning;
       this.options = {
         rotation: this.opts.rotation || 0,
         rotateButton: this.opts.rotateButton,
         antiRotateButton: this.opts.antiRotateButton,
         zoomerWidth: this.opts.ZoomerWidth || 150,
         zoomerHeight: this.opts.ZoomerHeight || 100,
-        scale: this.opts.scale || 2.5
-      };
-      this.options.closeOnClick = (ref = this.opts.closeOnClick === void 0) != null ? ref : {
-        "false": this.opts.closeOnClick
-      };
-      this.options.closeOnClickOutside = (ref1 = this.opts.closeOnClickOutside === void 0) != null ? ref1 : {
-        "true": this.opts.closeOnClickOutside
-      };
-      this.options.showZoomerAfterRotation = (ref2 = this.opts.showZoomerAfterRotation === void 0) != null ? ref2 : {
-        "true": this.opts.showZoomerAfterRotation
+        scale: this.opts.scale || 2.5,
+        closeOnClick: this.setDefault(this.opts.closeOnClick, false),
+        closeOnClickOutside: this.setDefault(this.opts.closeOnClickOutside, true),
+        showZoomerAfterRotation: this.setDefault(this.opts.showZoomerAfterRotation, true)
       };
       if (this.opts.closeOnClick === false && this.opts.closeOnClickOutside === false) {
         this.options.closeOnClick = true;
@@ -84,9 +78,16 @@
         warning += "Option 'closeOnClick' was set to true as a default.";
         console.warn(warning);
       }
-      console.log(this.options);
       this.deg = this.options.rotation;
       return this.options;
+    };
+
+    rotationZoomer.prototype.setDefault = function(opt, def) {
+      if (opt === void 0 || opt === null) {
+        return def;
+      } else {
+        return opt;
+      }
     };
 
     rotationZoomer.prototype.bindControls = function() {
@@ -145,7 +146,10 @@
       }
       this.context.rotate((Math.PI / 180) * this.deg);
       if (!this.options.showZoomerAfterRotation) {
-        return this.closeZoomer();
+        this.closeZoomer();
+      }
+      if (this.options.showZoomerAfterRotation && this.zoomerIsOpened) {
+        return this.initializeZoomer();
       }
     };
 
@@ -239,17 +243,19 @@
       zoomerContext.scale(this.options.scale, this.options.scale);
       zoomerContext.translate(this.sourceCoords.x, this.sourceCoords.y);
       zoomerContext.drawImage(this.context.canvas, 0, 0);
+      console.log(this.coords.x, this.coords.y);
       this.zoomer = new Zoomer(zoomerContext, this.options, this.coords.x, this.coords.y);
       return this.initializeZoomer();
     };
 
     rotationZoomer.prototype.initializeZoomer = function() {
-      if (!(this.zoomer || this.zoomerIsOpened)) {
-        return;
-      }
       this.context.restore();
+      if (this.zoomerIsOpened && this.options.showZoomerAfterRotation) {
+        this.zoomer.transformPosition();
+      }
       this.context.drawImage(this.zoomer.context.canvas, this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
-      return this.context.strokeRect(this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
+      this.context.strokeRect(this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
+      return this.zoomerIsOpened = true;
     };
 
     return rotationZoomer;
@@ -299,6 +305,10 @@
         for (var i = ref = this.bounds.left, ref1 = this.bounds.left + this.bounds.width; ref <= ref1 ? i <= ref1 : i >= ref1; ref <= ref1 ? i++ : i--){ results.push(i); }
         return results;
       }).apply(this);
+    };
+
+    Zoomer.prototype.transformPosition = function() {
+      return console.log(this.x, this.y);
     };
 
     return Zoomer;

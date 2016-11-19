@@ -60,10 +60,9 @@ class rotationZoomer
       zoomerWidth: @opts.ZoomerWidth || 150
       zoomerHeight: @opts.ZoomerHeight || 100
       scale: @opts.scale || 2.5
-
-    @options.closeOnClick = @opts.closeOnClick == undefined ? false : @opts.closeOnClick
-    @options.closeOnClickOutside = @opts.closeOnClickOutside == undefined ? true : @opts.closeOnClickOutside
-    @options.showZoomerAfterRotation = @opts.showZoomerAfterRotation == undefined ? true : @opts.showZoomerAfterRotation
+      closeOnClick: @setDefault(@opts.closeOnClick, false)
+      closeOnClickOutside: @setDefault(@opts.closeOnClickOutside, true)
+      showZoomerAfterRotation: @setDefault(@opts.showZoomerAfterRotation, true)
 
     # Invoke warning, correct options
     if @opts.closeOnClick == false && @opts.closeOnClickOutside == false
@@ -74,12 +73,16 @@ class rotationZoomer
       warning += "Option 'closeOnClick' was set to true as a default."
       console.warn(warning)
 
-    console.log(@options)
-
     # Set intial rotation
     @deg = @options.rotation
     # Return
     @options
+
+  setDefault: (opt, def) ->
+    if opt == undefined || opt == null
+      return def
+    else
+      return opt
 
   # Event handlers
   bindControls: ->
@@ -131,6 +134,7 @@ class rotationZoomer
 
     @context.rotate((Math.PI / 180) * @deg)
     @closeZoomer() unless @options.showZoomerAfterRotation
+    @initializeZoomer() if @options.showZoomerAfterRotation && @zoomerIsOpened
 
   # Clockwise rotation detected
   rotateCW: ->
@@ -225,15 +229,19 @@ class rotationZoomer
     zoomerContext.translate(@sourceCoords.x, @sourceCoords.y)
     zoomerContext.drawImage(@context.canvas, 0, 0)
 
+    console.log(@coords.x, @coords.y)
+
     # Add zoomer data to object
     @zoomer = new Zoomer(zoomerContext, @options, @coords.x, @coords.y)
 
     @initializeZoomer()
 
   initializeZoomer: ->
-    return unless @zoomer || @zoomerIsOpened
     # Reset rotation zoomer canvas (context is translated during rotation)
     @context.restore()
+
+    if @zoomerIsOpened && @options.showZoomerAfterRotation
+      @zoomer.transformPosition()
 
     # Draw zoomer on canvas
     @context.drawImage(
@@ -245,6 +253,8 @@ class rotationZoomer
       @zoomer.originX(), @zoomer.originY(),
       @zoomer.context.canvas.width, @zoomer.context.canvas.height
       )
+
+    @zoomerIsOpened = true
 
 # Represents zoomer window on canvas
 class Zoomer
@@ -283,3 +293,7 @@ class Zoomer
   # Calculate X-axis bounds
   axisX: ->
     [@bounds.left..(@bounds.left + @bounds.width)]
+
+  # Set correct coordinates when zoomer is opened and canvas rotated
+  transformPosition: ->
+    console.log @x, @y
