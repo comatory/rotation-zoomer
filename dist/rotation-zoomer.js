@@ -17,6 +17,7 @@
 
   rotationZoomer = (function() {
     function rotationZoomer(el, opts) {
+      this.handleResize = bind(this.handleResize, this);
       this.zoom = bind(this.zoom, this);
       this.trackMovement = bind(this.trackMovement, this);
       this.handleClick = bind(this.handleClick, this);
@@ -30,6 +31,10 @@
     rotationZoomer.prototype.initialize = function() {
       this.width = this.$el.width();
       this.height = this.$el.height();
+      this.ratio = {
+        horizontal: this.height / this.width,
+        vertical: this.width / this.height
+      };
       this.dimensions = {
         vert: {
           w: this.width,
@@ -68,6 +73,7 @@
         zoomerWidth: this.extractNums(this.opts.zoomerWidth || 150),
         zoomerHeight: this.extractNums(this.opts.zoomerHeight || 100),
         scale: this.opts.scale || 2.5,
+        responsive: this.setDefault(this.opts.responsive, true),
         zoomerBorderWidth: this.extractNums(this.opts.zoomerBorderWidth || 1),
         zoomerBorderColor: this.opts.zoomerBorderColor || 'black',
         zoomerBackgroundColor: this.opts.zoomerBackgroundColor || 'white',
@@ -133,7 +139,14 @@
       }
       if (this.options.zoomerEnabled) {
         this.$canvas.on('click', this.handleClick);
-        return this.$canvas.on('mousemove', this.trackMovement);
+        this.$canvas.on('mousemove', this.trackMovement);
+      }
+      if (this.options.responsive) {
+        return $(window).on('resize', (function(_this) {
+          return function(e) {
+            return _this.handleResize(e);
+          };
+        })(this));
       }
     };
 
@@ -155,6 +168,9 @@
     };
 
     rotationZoomer.prototype.rotate = function() {
+      if (this.options.responsive) {
+        this.resetCanvasSize();
+      }
       this.context.save();
       switch (this.deg) {
         case 90:
@@ -226,7 +242,7 @@
       this.coords = this.generateBounds(e);
       if (this.checkClickedArea()) {
         this.closeZoomer();
-        this.redraw();
+        this.setCursorInZoomer();
       } else if (this.zoomer === null) {
         this.zoom(e);
       }
@@ -353,6 +369,22 @@
       this.context.strokeStyle = this.options.zoomerBorderColor;
       this.context.lineWidth = this.options.zoomerBorderWidth;
       return this.context.strokeRect(this.zoomer.originX(), this.zoomer.originY(), this.zoomer.context.canvas.width, this.zoomer.context.canvas.height);
+    };
+
+    rotationZoomer.prototype.handleResize = function(e) {
+      this.closeZoomer();
+      this.resetCanvasSize();
+      return this.redraw();
+    };
+
+    rotationZoomer.prototype.resetCanvasSize = function() {
+      var parentWidth, ratio;
+      parentWidth = $(this.context.canvas).parent().width();
+      ratio = this.hasHorizontalRotation() ? this.ratio.vertical : this.ratio.horizontal;
+      this.width = parentWidth;
+      this.height = parentWidth * ratio;
+      this.context.canvas.width = parentWidth;
+      return this.context.canvas.height = parentWidth * ratio;
     };
 
     return rotationZoomer;

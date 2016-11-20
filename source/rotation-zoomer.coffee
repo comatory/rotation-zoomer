@@ -19,6 +19,9 @@ class rotationZoomer
   initialize: ->
     @width = @$el.width()
     @height = @$el.height()
+    @ratio =
+      horizontal: @height / @width
+      vertical: @width / @height
 
     # Used for changing width & height on canvas element
     @dimensions =
@@ -61,6 +64,7 @@ class rotationZoomer
       zoomerWidth: @extractNums(@opts.zoomerWidth || 150)
       zoomerHeight: @extractNums(@opts.zoomerHeight || 100)
       scale: @opts.scale || 2.5
+      responsive: @setDefault(@opts.responsive, true)
       zoomerBorderWidth: @extractNums(@opts.zoomerBorderWidth || 1)
       zoomerBorderColor: @opts.zoomerBorderColor || 'black'
       zoomerBackgroundColor: @opts.zoomerBackgroundColor || 'white'
@@ -125,6 +129,10 @@ class rotationZoomer
       @$canvas.on 'click', @handleClick
       @$canvas.on 'mousemove', @trackMovement
 
+    if @options.responsive
+      $(window).on 'resize', (e) =>
+        @handleResize(e)
+
   # Set rotation-zoomer element's dimensions
   setWidthAndHeight: ->
     if @hasHorizontalRotation()
@@ -142,6 +150,8 @@ class rotationZoomer
     @redraw()
 
   rotate: ->
+    @resetCanvasSize() if @options.responsive
+
     # Context is saved so it can be reinitialized later for zooemr windows
     @context.save()
     switch @deg
@@ -220,7 +230,7 @@ class rotationZoomer
     # See whether zoomer was clicked
     if @checkClickedArea()
       @closeZoomer()
-      @redraw()
+      @setCursorInZoomer()
     else if @zoomer == null
       @zoom(e)
 
@@ -352,6 +362,24 @@ class rotationZoomer
       @zoomer.originX(), @zoomer.originY(),
       @zoomer.context.canvas.width, @zoomer.context.canvas.height
       )
+
+  # Handle browser window resize
+  handleResize: (e) =>
+    @closeZoomer()
+    @resetCanvasSize()
+    @redraw()
+
+  resetCanvasSize: ->
+    parentWidth = $(@context.canvas).parent().width()
+    ratio = if @hasHorizontalRotation()
+              @ratio.vertical
+            else
+              @ratio.horizontal
+
+    @width = parentWidth
+    @height = parentWidth * ratio
+    @context.canvas.width = parentWidth
+    @context.canvas.height = parentWidth * ratio
 
 # Represents zoomer window on canvas
 class Zoomer
