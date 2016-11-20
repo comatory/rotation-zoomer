@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>RotationZoomer jQuery plugin</title>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/default.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" type="text/javascript"></script>
-  <script src="https://cdn.rawgit.com/comatory/rotation-zoomer/master/dist/rotation-zoomer.min.js" type="text/javascript"></script>
+  <script src="../dist/rotation-zoomer.js" type="text/javascript"></script>
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.2.0/milligram.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/1.6.329/pdf.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/prism.min.js"></script>
   <style>
     body {
       max-width: 1200px;
@@ -41,7 +45,7 @@
       <h2>Usage</h2>
       <p>The behaviour is as expected from any other jQuery plugin. This is the most simple configuration:<br/ >
         <pre>
-          <code>
+          <code class="language-javascript">
             $('#example1').rotationZoomer();
           </code>
         </pre>
@@ -112,7 +116,7 @@
         <div class="column">
           <h3>Zooming and rotating</h3>
           <pre>
-            <code>
+            <code class="language-javascript">
               $('#example2').rotationZoomer({
                 zoomerWidth: 200,
                 zoomerHeight: 250,
@@ -141,7 +145,7 @@
           <h3>Multiple images with set widths</h3>
           <p>IMG tags have set widths, canvas keeps the same size and constraints to correct ratio.</p>
           <pre>
-            <code>
+            <code class="language-javascript">
               $('#set01, #set02, #set03').rotationZoomer({
                 rotateButton: '#rotateButton02',
                 antiRotateButton: '#antiRotateButton02',
@@ -178,11 +182,10 @@
     <br />
     <div class="row">
       <div class="column">
-        <h3>PDFs & pages (in progress)</h3>
+        <h3>PDFs & pages</h3>
         <p>You can also use other canvases as target element. Here it's demonstrated with multiple-paged PDF document rendered via <a href="https://mozilla.github.io/pdf.js/">PDFjs library</a> which outputs the pages as canvas elements.</p>
-        <p><em>Click rotation button to show the PDFs. This will be fixed soon.</em></p>
         <pre>
-          <code>
+          <code class="language-javascript">
             var canvasContainer = document.getElementById('pdf');
             var scale = 1.5;
 
@@ -198,10 +201,11 @@
                   viewport: viewport
                 };
                 canvasContainer.appendChild(canvas)
-                page.render(renderContext);
-                $(canvas).rotationZoomer({
-                  closeOnClick: true,
-                  rotateButton: '#pdfRotate'
+                page.render(renderContext).then(function() {
+                  $(context.canvas).rotationZoomer({
+                    closeOnClick: true,
+                    rotateButton: '#pdfRotate'
+                  });
                 });
             }
 
@@ -240,6 +244,8 @@
   </div>
 
   <script>
+    // You want to make sure all images are loaded before calling
+    // rotationZoomer function on them
     window.onload = function() {
 
       $('#example1').rotationZoomer();
@@ -262,35 +268,40 @@
         zoomerBorderColor: 'white',
         closeOnClick: true
       });
-    }
 
-    var canvasContainer = document.getElementById('pdf');
-    var scale = 1.5;
+      // This code only works if you have PDFjs included
+      var canvasContainer = document.getElementById('pdf');
+      var scale = 1.5;
 
-    function renderPage(page) {
-        var viewport = page.getViewport(scale);
-        var canvas = document.createElement('canvas');
-        var context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+      function renderPage(page) {
+          var viewport = page.getViewport(scale);
+          var canvas = document.createElement('canvas');
+          var context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
 
-        var renderContext = {
-          canvasContext: context,
-          viewport: viewport
-        };
-        canvasContainer.appendChild(canvas)
-        page.render(renderContext);
-        $(canvas).rotationZoomer({
-          closeOnClick: true,
-          rotateButton: '#pdfRotate'
-        });
-    }
-
-    PDFJS.getDocument('compressed.tracemonkey-pldi-09.pdf').then(function(pdf) {
-      for (var num = 1; num <= 3; num++) {
-        pdf.getPage(num).then(renderPage);
+          var renderContext = {
+            canvasContext: context,
+            viewport: viewport
+          };
+          canvasContainer.appendChild(canvas)
+          // Must implement promise here and call the function
+          // after the page render occurs
+          page.render(renderContext).then(function() {
+            $(context.canvas).rotationZoomer({
+              closeOnClick: true,
+              rotateButton: '#pdfRotate'
+            });
+          });
       }
-    });
+
+      PDFJS.getDocument('compressed.tracemonkey-pldi-09.pdf').then(function(pdf) {
+        for (var num = 1; num <= 3; num++) {
+          pdf.getPage(num).then(renderPage);
+        }
+      });
+    }
+
   </script>
 </body>
 </html>
