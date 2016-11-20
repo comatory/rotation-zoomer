@@ -15,6 +15,13 @@
       margin: 10px auto;
       padding: 30px;
     }
+
+    .configuration dt {
+      font-family: 'Courier';
+      font-size: 0.8em;
+      background: lightgrey;
+      color: black
+    }
   </style>
 </head>
 <body>
@@ -29,7 +36,7 @@
         Once you call the function on <em>image</em> or <em>canvas</em> element, that element becomes hidden and is instead replaced by canvas element where the actual manipulation occurs.
       </p>
       <p>
-        The source is written in CoffeeScript v. 1.11.0 and composed & minified using <a href="https://www.npmjs.com/package/coffeebar">coffeebar</a>. The images are by artist <a href="http://cargocollective.com/matthewdivito">Matthew Divito and are taken from his personal webpage</a>.
+        The source is written in <a href="http://coffeescript.org/">CoffeeScript</a> v. 1.11.0 and composed & minified using <a href="https://www.npmjs.com/package/coffeebar">coffeebar</a>. The images are by artist <a href="http://cargocollective.com/matthewdivito">Matthew Divito and are taken from his personal webpage</a>.
       </p>
       <h2>Compatibility</h2>
       <p>
@@ -62,7 +69,7 @@
       <h2>Configuration</h2>
       <p>
         Following options can be specified:<br/>
-        <dl>
+        <dl class="configuration">
           <dt>rotation</dt>
           <dd>(Integer: [0, 90, 180, 270] - Starting rotation (in degrees). Default is 0.</dd>
 
@@ -101,6 +108,15 @@
 
           <dt>showZoomerAfterRotation</dt>
           <dd>(Boolean) - When you leave zoomer window opened and you rotate image, the zoomer window will be kept open in new recalculated position. Default is true.</dd>
+
+          <dt>cursorZoomIn</dt>
+          <dd>(String) - CSS property of cursor on areas that can be zoomed in (canvas without zoomer window opened). Default is 'zoom-in'.</dd>
+
+          <dt>cursorZoomClose</dt>
+          <dd>(String) - CSS property of cursor indicating that zoomer window will be closed. Default is 'zoom-out'.</dd>
+
+          <dt>cursorZoomNoAction</dt>
+          <dd>(String) - CSS property of cursor indicating that nothing will happen on click. Default is 'default'.</dd>
         </dl>
       </p>
     </div>
@@ -116,8 +132,9 @@
           <pre>
             <code class="language-javascript">
               $('#example2').rotationZoomer({
-                zoomerWidth: 200,
+                zoomerWidth: 350,
                 zoomerHeight: 250,
+                zoomerBorderColor: 'orange',
                 scale: 5.0,
                 rotation: 180,
                 closeOnClick: true,
@@ -148,7 +165,9 @@
                 rotateButton: '#rotateButton02',
                 antiRotateButton: '#antiRotateButton02',
                 scale: 1.8,
-                zoomerBorderWidth: 3,
+                zoomerWidth: 100,
+                zoomerHeight: 60
+                zoomerBorderWidth: 2,
                 zoomerBorderColor: 'white',
                 closeOnClick: true
               });
@@ -249,8 +268,9 @@
       $('#example1').rotationZoomer();
 
       $('#example2').rotationZoomer({
-        zoomerWidth: 200,
-        zoomerHeight: 250,
+        zoomerWidth: 250,
+        zoomerHeight: 150,
+        zoomerBorderColor: 'orange',
         scale: 5.0,
         rotation: 180,
         closeOnClick: true,
@@ -262,7 +282,9 @@
         rotateButton: '#rotateButton02',
         antiRotateButton: '#antiRotateButton02',
         scale: 1.8,
-        zoomerBorderWidth: 3,
+        zoomerWidth: 100,
+        zoomerHeight: 60,
+        zoomerBorderWidth: 2,
         zoomerBorderColor: 'white',
         closeOnClick: true
       });
