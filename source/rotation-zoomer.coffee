@@ -2,11 +2,11 @@
 do ($) ->
   $.fn.rotationZoomer = (opts = {}) ->
       # Allow multiple declarations
-      this.each (index, el) ->
-        new rotationZoomer(el, opts)
+    this.each (index, el) ->
+      new RotationZoomer(el, opts)
 
 # Main class
-class rotationZoomer
+class RotationZoomer
 
   # Receive DOM element and user options
   constructor: (el, opts) ->
@@ -19,6 +19,9 @@ class rotationZoomer
   initialize: ->
     @width = @$el.width()
     @height = @$el.height()
+    @ratio =
+      horizontal: @height / @width
+      vertical: @width / @height
 
     # Used for changing width & height on canvas element
     @dimensions =
@@ -44,9 +47,9 @@ class rotationZoomer
       position: @$el.css('position')
       display: @$el.css('display')
       })
-    # Put new element next to original element
-    @$el.parents().first().append(@$canvas)
-    @$el.css('display', 'none')
+    # Replace original element with canvas
+    # You can still access original element in @el
+    @$el.replaceWith(@$canvas)
     # Create canvas context
     @context = @$canvas.get(0).getContext('2d')
     @bindControls()
@@ -61,6 +64,7 @@ class rotationZoomer
       zoomerWidth: @extractNums(@opts.zoomerWidth || 150)
       zoomerHeight: @extractNums(@opts.zoomerHeight || 100)
       scale: @opts.scale || 2.5
+      responsive: @setDefault(@opts.responsive, true)
       zoomerBorderWidth: @extractNums(@opts.zoomerBorderWidth || 1)
       zoomerBorderColor: @opts.zoomerBorderColor || 'black'
       zoomerBackgroundColor: @opts.zoomerBackgroundColor || 'white'
@@ -75,17 +79,17 @@ class rotationZoomer
     if @opts.closeOnClick == false && @opts.closeOnClickOutside == false
       @options.closeOnClick = true
       @options.closeOnClickOutside = false
-      warning = "You passed invalid options:\n"
-      warning += "Options 'closeOnClick' and 'closeOnClickOutside' were both set to false. You cannot do this.\n"
-      warning += "Option 'closeOnClick' was set to true as a default."
+      warning = "You passed invalid options:
+      Options 'closeOnClick' and 'closeOnClickOutside' were both set to false.
+      You cannot do this. Option 'closeOnClick' was set to true as a default."
       console.warn(warning)
 
     # Invoke warning for invalid rotation numbers
     if @options.rotation not in [0, 90, 180, 270]
       @options.rotation = 0
-      warning = "You passed invalid options:\n"
-      warning += "Options 'rotation' has invalid values, it must be in [0, 90, 180, 270]."
-      warning += "No other values allowed! Rotation set to 0."
+      warning = "You passed invalid options:
+      Options 'rotation' has invalid values, it must be in [0, 90, 180, 270].
+      No other values allowed! Rotation set to 0."
       console.warn(warning)
 
     # Set intial rotation
@@ -125,6 +129,10 @@ class rotationZoomer
       @$canvas.on 'click', @handleClick
       @$canvas.on 'mousemove', @trackMovement
 
+    if @options.responsive
+      $(window).on 'resize', (e) =>
+        @handleResize(e)
+
   # Set rotation-zoomer element's dimensions
   setWidthAndHeight: ->
     if @hasHorizontalRotation()
@@ -142,6 +150,8 @@ class rotationZoomer
     @redraw()
 
   rotate: ->
+    @resetCanvasSize() if @options.responsive
+
     # Context is saved so it can be reinitialized later for zooemr windows
     @context.save()
     switch @deg
@@ -165,9 +175,10 @@ class rotationZoomer
   # Clockwise rotation detected
   rotateCW: ->
     @deg = if @deg + 90 >= 360
-            0
-          else
-            @deg + 90
+      0
+    else
+      @deg + 90
+
     @wasCW = true
     @transform()
     @deg
@@ -175,9 +186,10 @@ class rotationZoomer
   # Anti-clockwise rotation detected
   rotateACW: ->
     @deg = if @deg - 90 < 0
-            270
-          else
-            @deg - 90
+      270
+    else
+      @deg - 90
+
     @wasCW = false
     @transform()
     @deg
@@ -220,6 +232,7 @@ class rotationZoomer
     # See whether zoomer was clicked
     if @checkClickedArea()
       @closeZoomer()
+      @setCursorInZoomer()
       @redraw()
     else if @zoomer == null
       @zoom(e)
@@ -298,6 +311,12 @@ class rotationZoomer
     x = @zoomer.x
     y = @zoomer.y
 
+    # Get current ratio for responsive option
+    if @options.responsive
+      ratio = @currentRatio()
+      x = x * ratio
+      y = y * ratio
+
     if @wasCW
       @coords.x = @width - y
       @coords.y = x
@@ -319,7 +338,9 @@ class rotationZoomer
     zoomerContext.canvas.height = @options.zoomerHeight
     # Fill background when displaying zoomer on edge
     zoomerContext.fillStyle = @options.zoomerBackgroundColor
-    zoomerContext.fillRect(0, 0, zoomerContext.canvas.width, zoomerContext.canvas.height)
+    zoomerContext.fillRect(
+      0, 0, zoomerContext.canvas.width, zoomerContext.canvas.height
+    )
     # Scale and translate
     zoomerContext.scale(@options.scale, @options.scale)
     zoomerContext.translate(@sourceCoords.x, @sourceCoords.y)
@@ -352,6 +373,27 @@ class rotationZoomer
       @zoomer.originX(), @zoomer.originY(),
       @zoomer.context.canvas.width, @zoomer.context.canvas.height
       )
+
+  # Handle browser window resize
+  handleResize: (e) =>
+    @closeZoomer()
+    @resetCanvasSize()
+    @redraw()
+
+  resetCanvasSize: ->
+    parentWidth = $(@context.canvas).parent().width()
+    @width = parentWidth
+    ratio = @currentRatio()
+    @height = parentWidth * ratio
+    @context.canvas.width = parentWidth
+    @context.canvas.height = parentWidth * ratio
+
+  # Will set correct ratio for current rotation
+  currentRatio: ->
+    if @hasHorizontalRotation()
+      @ratio.vertical
+    else
+      @ratio.horizontal
 
 # Represents zoomer window on canvas
 class Zoomer

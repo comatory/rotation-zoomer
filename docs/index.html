@@ -29,11 +29,14 @@
   <div class="row">
     <div class="column">
       <h1>RotationZoomer jQuery plugin</h1>
-        <p>
+      <p>
         This plugin allows you to easily rotate and zoom images/canvas elements in simplistic fashion. It offers rotation in place without worrying about padding or margin. Elements can only be rotated by 90 degree angles.
       </p>
       <p>
-        Once you call the function on <em>image</em> or <em>canvas</em> element, that element becomes hidden and is instead replaced by canvas element where the actual manipulation occurs.
+        By default the elements will become responsive = their widths will be set to maximum width of their containing parent element. This is by design to target mobile devices first, it can be disabled via option.
+      </p>
+      <p>
+        Once you call the function on <em>image</em> or <em>canvas</em> element, that element gets replaced in DOM by new canvas element where the actual manipulation occurs.
       </p>
       <p>
         The source is written in <a href="http://coffeescript.org/">CoffeeScript</a> v. 1.11.0 and composed & minified using <a href="https://www.npmjs.com/package/coffeebar">coffeebar</a>. The images are by artist <a href="http://cargocollective.com/matthewdivito">Matthew Divito and are taken from his personal webpage</a>.
@@ -109,6 +112,9 @@
           <dt>showZoomerAfterRotation</dt>
           <dd>(Boolean) - When you leave zoomer window opened and you rotate image, the zoomer window will be kept open in new recalculated position. Default is true.</dd>
 
+          <dt>responsive</dt>
+          <dd>(Boolean) - Specify whether width of image/canvas should be stretched to maximum of its parent. Default is 'true'.</dd>
+
           <dt>cursorZoomIn</dt>
           <dd>(String) - CSS property of cursor on areas that can be zoomed in (canvas without zoomer window opened). Default is 'zoom-in'.</dd>
 
@@ -159,14 +165,16 @@
         <div class="column">
           <h3>Multiple images with set widths</h3>
           <p>IMG tags have set widths, canvas keeps the same size and constraints to correct ratio.</p>
+          <p>Set <b>responsive</b> option to <i>false</i> to retain fixed widths.</p>
           <pre>
             <code class="language-javascript">
               $('#set01, #set02, #set03').rotationZoomer({
                 rotateButton: '#rotateButton02',
                 antiRotateButton: '#antiRotateButton02',
+                responsive: false,
                 scale: 1.8,
                 zoomerWidth: 100,
-                zoomerHeight: 60
+                zoomerHeight: 60,
                 zoomerBorderWidth: 2,
                 zoomerBorderColor: 'white',
                 closeOnClick: true
@@ -247,9 +255,6 @@
       <p>
         <ul>
           <li>
-            Add responsive resizing
-          </li>
-          <li>
             Fill up zoomer window when on edge
           </li>
           <li>
@@ -282,6 +287,7 @@
         rotateButton: '#rotateButton02',
         antiRotateButton: '#antiRotateButton02',
         scale: 1.8,
+        responsive: false,
         zoomerWidth: 100,
         zoomerHeight: 60,
         zoomerBorderWidth: 2,
