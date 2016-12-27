@@ -47,9 +47,9 @@ class rotationZoomer
       position: @$el.css('position')
       display: @$el.css('display')
       })
-    # Put new element next to original element
-    @$el.parents().first().append(@$canvas)
-    @$el.css('display', 'none')
+    # Replace original element with canvas
+    # You can still access original element in @el
+    @$el.replaceWith(@$canvas)
     # Create canvas context
     @context = @$canvas.get(0).getContext('2d')
     @bindControls()

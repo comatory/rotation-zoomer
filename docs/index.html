@@ -36,7 +36,7 @@
         By default the elements will become responsive = their widths will be set to maximum width of their containing parent element. This is by design to target mobile devices first, it can be disabled via option.
       </p>
       <p>
-        Once you call the function on <em>image</em> or <em>canvas</em> element, that element becomes hidden and is instead replaced by canvas element where the actual manipulation occurs.
+        Once you call the function on <em>image</em> or <em>canvas</em> element, that element gets replaced in DOM by new canvas element where the actual manipulation occurs.
       </p>
       <p>
         The source is written in <a href="http://coffeescript.org/">CoffeeScript</a> v. 1.11.0 and composed & minified using <a href="https://www.npmjs.com/package/coffeebar">coffeebar</a>. The images are by artist <a href="http://cargocollective.com/matthewdivito">Matthew Divito and are taken from his personal webpage</a>.
@@ -254,9 +254,6 @@
       <h2>Todo</h2>
       <p>
         <ul>
-          <li>
-            Add responsive resizing
-          </li>
           <li>
             Fill up zoomer window when on edge
           </li>

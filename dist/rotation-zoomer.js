@@ -56,8 +56,7 @@
         position: this.$el.css('position'),
         display: this.$el.css('display')
       });
-      this.$el.parents().first().append(this.$canvas);
-      this.$el.css('display', 'none');
+      this.$el.replaceWith(this.$canvas);
       this.context = this.$canvas.get(0).getContext('2d');
       this.bindControls();
       return this.transform();
