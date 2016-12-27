@@ -243,6 +243,7 @@
       if (this.checkClickedArea()) {
         this.closeZoomer();
         this.setCursorInZoomer();
+        this.redraw();
       } else if (this.zoomer === null) {
         this.zoom(e);
       }
@@ -326,9 +327,14 @@
     };
 
     rotationZoomer.prototype.reopenZoomer = function() {
-      var x, y;
+      var ratio, x, y;
       x = this.zoomer.x;
       y = this.zoomer.y;
+      if (this.options.responsive) {
+        ratio = this.currentRatio();
+        x = x * ratio;
+        y = y * ratio;
+      }
       if (this.wasCW) {
         this.coords.x = this.width - y;
         this.coords.y = x;
@@ -380,11 +386,19 @@
     rotationZoomer.prototype.resetCanvasSize = function() {
       var parentWidth, ratio;
       parentWidth = $(this.context.canvas).parent().width();
-      ratio = this.hasHorizontalRotation() ? this.ratio.vertical : this.ratio.horizontal;
       this.width = parentWidth;
+      ratio = this.currentRatio();
       this.height = parentWidth * ratio;
       this.context.canvas.width = parentWidth;
       return this.context.canvas.height = parentWidth * ratio;
+    };
+
+    rotationZoomer.prototype.currentRatio = function() {
+      if (this.hasHorizontalRotation()) {
+        return this.ratio.vertical;
+      } else {
+        return this.ratio.horizontal;
+      }
     };
 
     return rotationZoomer;

@@ -231,6 +231,7 @@ class rotationZoomer
     if @checkClickedArea()
       @closeZoomer()
       @setCursorInZoomer()
+      @redraw()
     else if @zoomer == null
       @zoom(e)
 
@@ -308,6 +309,12 @@ class rotationZoomer
     x = @zoomer.x
     y = @zoomer.y
 
+    # Get current ratio for responsive option
+    if @options.responsive
+      ratio = @currentRatio()
+      x = x * ratio
+      y = y * ratio
+
     if @wasCW
       @coords.x = @width - y
       @coords.y = x
@@ -371,15 +378,18 @@ class rotationZoomer
 
   resetCanvasSize: ->
     parentWidth = $(@context.canvas).parent().width()
-    ratio = if @hasHorizontalRotation()
-              @ratio.vertical
-            else
-              @ratio.horizontal
-
     @width = parentWidth
+    ratio = @currentRatio()
     @height = parentWidth * ratio
     @context.canvas.width = parentWidth
     @context.canvas.height = parentWidth * ratio
+
+  # Will set correct ratio for current rotation
+  currentRatio: ->
+    if @hasHorizontalRotation()
+      @ratio.vertical
+    else
+      @ratio.horizontal
 
 # Represents zoomer window on canvas
 class Zoomer
